@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { CredentialsInterface } from './models/credentials';
+import { UpdatePasswordInterface } from './models/updatePassword';
 import {
   Exception,
   NOT_FOUND,
@@ -22,13 +24,13 @@ export class UserService {
     return user;
   }
 
-  create(login: string, password: string): User {
+  create(credentials: CredentialsInterface): User {
+    const { login, password } = credentials;
     if (!login || !password) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'to create user provide login and password.',
-      );
+      new Exception(BAD_REQUEST, '', 'to create user provide', [
+        !login ? 'login' : '',
+        !password ? 'password' : '',
+      ]);
     }
     const user = new User(login, password);
     this.userRepository.create(user);
@@ -43,17 +45,14 @@ export class UserService {
     this.userRepository.delete(user);
   }
 
-  updatePassword(
-    userId: string,
-    oldPassword: string,
-    newPassword: string,
-  ): User {
+  updatePassword(userId: string, credentials: UpdatePasswordInterface): User {
+    const { oldPassword, newPassword } = credentials;
+
     if (!userId || !oldPassword || !newPassword) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'provide userID, old password and new password.',
-      );
+      new Exception(BAD_REQUEST, '', 'provide', [
+        !oldPassword ? 'old password' : '',
+        !newPassword ? 'new password' : '',
+      ]);
     }
     const user = this.findOne(userId);
 
