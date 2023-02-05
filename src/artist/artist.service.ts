@@ -3,7 +3,6 @@ import { CreateArtistDto } from './dto/createArtistDto';
 import {
   Exception,
   NOT_FOUND,
-  FORBIDDEN,
   BAD_REQUEST,
 } from '../utils/exceptionsGenerator';
 import { Artist } from './artist.entity';

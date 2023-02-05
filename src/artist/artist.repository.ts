@@ -1,25 +1,23 @@
 import { Artist } from './artist.entity';
+import { database } from 'src/database/database';
 
 export class ArtistRepository {
-  private artists: Artist[] = [];
-
   public findAll() {
-    return this.artists;
+    return database.artists;
   }
 
   public findOne(artistId: string) {
-    return this.artists.find((artist) => artist.getArtistId() === artistId);
+    return database.artists.find((artist) => artist.getArtistId() === artistId);
   }
 
   public create(artist: Artist) {
-    this.artists = [...this.artists, artist];
+    database.artists = [...database.artists, artist];
   }
 
   public delete(artist: Artist) {
-    const index = this.artists.indexOf(artist);
+    const index = database.artists.indexOf(artist);
     if (index !== -1) {
-      this.artists.splice(index, 1);
+      database.artists.splice(index, 1);
     }
-    this.artists.splice(index, 1);
   }
 }

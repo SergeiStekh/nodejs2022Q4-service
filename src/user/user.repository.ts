@@ -1,25 +1,24 @@
 import { User } from './user.entity';
+import { database } from 'src/database/database';
 
 export class UserRepository {
-  private users: User[] = [];
-
   public findAll() {
-    return this.users;
+    return database.users;
   }
 
   public findOne(userId: string) {
-    const user = this.users.find((user) => user.getUserId() === userId);
+    const user = database.users.find((user) => user.getUserId() === userId);
     return user;
   }
 
   public create(user: User) {
-    this.users = [...this.users, user];
+    database.users = [...database.users, user];
   }
 
   public delete(user: User) {
-    const index = this.users.indexOf(user);
+    const index = database.users.indexOf(user);
     if (index !== -1) {
-      this.users.splice(index, 1);
+      database.users.splice(index, 1);
     }
   }
 }
