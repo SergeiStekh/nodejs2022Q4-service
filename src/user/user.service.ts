@@ -55,6 +55,9 @@ export class UserService {
       ]);
     }
     const user = this.findOne(userId);
+    if (!user) {
+      new Exception(NOT_FOUND, 'user', '');
+    }
 
     if (oldPassword !== user.getUserPassword()) {
       new Exception(FORBIDDEN, '', 'old password is incorrect.');
