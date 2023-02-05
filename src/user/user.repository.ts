@@ -1,5 +1,5 @@
 import { User } from './user.entity';
-import { database } from 'src/database/database';
+import { database } from '../database/database';
 
 export class UserRepository {
   public findAll() {

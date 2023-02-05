@@ -1,5 +1,5 @@
 import { Artist } from './artist.entity';
-import { database } from 'src/database/database';
+import { database } from '../database/database';
 
 export class ArtistRepository {
   public findAll() {

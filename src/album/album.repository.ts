@@ -1,5 +1,5 @@
 import { Album } from './album.entity';
-import { database } from 'src/database/database';
+import { database } from '../database/database';
 
 export class AlbumRepository {
   public findAll() {

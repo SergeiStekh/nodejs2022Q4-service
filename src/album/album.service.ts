@@ -105,7 +105,7 @@ export class AlbumService {
 
   deleteAlbum(albumId: string): void {
     if (!albumId) {
-      new Exception(BAD_REQUEST, '', "to delete album, provide artist's ID.");
+      new Exception(BAD_REQUEST, '', "to delete album, provide album's ID.");
     }
     const album = this.findOne(albumId);
     if (!album) {
