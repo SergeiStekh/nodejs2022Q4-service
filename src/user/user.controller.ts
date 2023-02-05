@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import * as nestJS from '@nestjs/common';
-import { CredentialsInterface } from './models/credentials';
-import { UpdatePasswordInterface } from './models/updatePassword';
+import { CreateUserDto } from './dto/createUserDto';
+import { UpdatePasswordDto } from './dto/updatePasswordDto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 
@@ -21,16 +21,16 @@ export class UserController {
   }
 
   @nestJS.Post()
-  create(@nestJS.Body() credentials: CredentialsInterface): User {
-    return this.userService.create(credentials);
+  create(@nestJS.Body() createUserDto: CreateUserDto): User {
+    return this.userService.create(createUserDto);
   }
 
   @nestJS.Put(':id')
   updatePassword(
     @nestJS.Param('id', nestJS.ParseUUIDPipe) id: string,
-    @nestJS.Body() credentials: UpdatePasswordInterface,
+    @nestJS.Body() updatePasswordDto: UpdatePasswordDto,
   ): User {
-    return this.userService.updatePassword(id, credentials);
+    return this.userService.updatePassword(id, updatePasswordDto);
   }
 
   @nestJS.Delete(':id')
