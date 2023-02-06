@@ -15,5 +15,6 @@ import { AlbumRepository } from '../album/album.repository';
     TrackRepository,
     AlbumRepository,
   ],
+  exports: [FavoritesService],
 })
 export class FavoritesModule {}

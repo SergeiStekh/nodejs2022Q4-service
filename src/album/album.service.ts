@@ -3,7 +3,6 @@ import { CreateAlbumDto } from './dto/createAlbumDto';
 import {
   Exception,
   NOT_FOUND,
-  FORBIDDEN,
   BAD_REQUEST,
 } from '../utils/exceptionsGenerator';
 import { Album } from './album.entity';

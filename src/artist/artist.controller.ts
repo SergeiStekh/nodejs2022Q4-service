@@ -3,11 +3,15 @@ import * as nestJS from '@nestjs/common';
 import { CreateArtistDto } from './dto/createArtistDto';
 import { Artist } from './artist.entity';
 import { ArtistService } from './artist.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)
 @nestJS.Controller('artist')
 export class ArtistController {
-  constructor(private readonly artistService: ArtistService) {}
+  constructor(
+    private readonly artistService: ArtistService,
+    private readonly favoritesService: FavoritesService,
+  ) {}
 
   @nestJS.Get(':id')
   findOne(@nestJS.Param('id', nestJS.ParseUUIDPipe) id: string): Artist {
@@ -38,6 +42,7 @@ export class ArtistController {
     @nestJS.Res() res: Response,
     @nestJS.Param('id', nestJS.ParseUUIDPipe) id: string,
   ) {
+    this.favoritesService.removeArtistFromFavorites(id);
     this.artistService.deleteArtist(id);
     res.status(nestJS.HttpStatus.NO_CONTENT).json([]);
   }

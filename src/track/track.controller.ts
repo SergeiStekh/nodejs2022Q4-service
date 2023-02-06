@@ -3,11 +3,15 @@ import * as nestJS from '@nestjs/common';
 import { CreateTrackDto } from './dto/createTrackDto';
 import { Track } from './track.entity';
 import { TrackService } from './track.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)
 @nestJS.Controller('track')
 export class TrackController {
-  constructor(private readonly trackService: TrackService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly favoritesService: FavoritesService,
+  ) {}
 
   @nestJS.Get(':id')
   findOne(@nestJS.Param('id', nestJS.ParseUUIDPipe) id: string): Track {
@@ -38,6 +42,7 @@ export class TrackController {
     @nestJS.Res() res: Response,
     @nestJS.Param('id', nestJS.ParseUUIDPipe) id: string,
   ) {
+    this.favoritesService.removeTrackFromFavorites(id);
     this.trackService.deleteTrack(id);
     res.status(nestJS.HttpStatus.NO_CONTENT).json([]);
   }
