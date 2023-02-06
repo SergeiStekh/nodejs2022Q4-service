@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { capitalizeFirstLetter } from './stringUtils';
 
@@ -9,9 +10,10 @@ enum exceptionType {
   NOT_FOUND = 'notFound',
   FORBIDDEN = 'forbidden',
   BAD_REQUEST = 'badRequest',
+  UNPROCESSABLE = 'unprocessable',
 }
 
-const { NOT_FOUND, FORBIDDEN, BAD_REQUEST } = exceptionType;
+const { NOT_FOUND, FORBIDDEN, BAD_REQUEST, UNPROCESSABLE } = exceptionType;
 
 class Exception {
   exceptionType: exceptionType;
@@ -59,10 +61,14 @@ class Exception {
         throw new BadRequestException(
           `Bad request, ${this.exceptionText} ${this.exceptionMissingFields}`,
         );
+      case UNPROCESSABLE:
+        throw new UnprocessableEntityException(
+          `Unprocessable entity exception, ${this.exceptionText}`,
+        );
       default:
         return;
     }
   }
 }
 
-export { Exception, NOT_FOUND, FORBIDDEN, BAD_REQUEST };
+export { Exception, NOT_FOUND, FORBIDDEN, BAD_REQUEST, UNPROCESSABLE };
