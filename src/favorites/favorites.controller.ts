@@ -4,7 +4,7 @@ import { Favorites } from './favorites.entity';
 import { FavoritesService } from './favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)
-@nestJS.Controller('favorites')
+@nestJS.Controller('favs')
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
