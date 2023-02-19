@@ -67,10 +67,16 @@ export class UserService {
     if (oldPassword !== user.password) {
       new Exception(FORBIDDEN, '', 'old password is incorrect.');
     }
-    console.log('new password is ' + newPassword);
     user.password = newPassword;
     user.version = user.version + 1;
     user.updatedAt = String(Date.now());
+
+    await this.userRepository.updatePassword(
+      userId,
+      user.password,
+      user.version,
+      user.updatedAt,
+    );
     return user;
   }
 }

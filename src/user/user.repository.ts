@@ -26,4 +26,22 @@ export class UserRepository {
   public async delete(userId: string) {
     await this.prismaService.userPrisma.delete({ where: { id: userId } });
   }
+
+  public async updatePassword(
+    userId: string,
+    newPassword: string,
+    newVersion: number,
+    updatedAt: string,
+  ) {
+    await this.prismaService.userPrisma.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: newPassword,
+        version: newVersion,
+        updatedAt: updatedAt,
+      },
+    });
+  }
 }
