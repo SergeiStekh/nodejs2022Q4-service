@@ -7,24 +7,26 @@ import {
   FORBIDDEN,
   BAD_REQUEST,
 } from '../utils/exceptionsGenerator';
-import { User } from './user.entity';
+import { UserPrisma } from '@prisma/client';
 import { UserRepository } from './user.repository';
+import { User } from './user.entity';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  findAll(): User[] {
-    return this.userRepository.findAll();
+  async findAll() {
+    const user = await this.userRepository.findAll();
+    return user;
   }
 
-  findOne(userId: string): User {
-    const user = this.userRepository.findOne(userId);
+  async findOne(userId: string) {
+    const user = await this.userRepository.findOne(userId);
     if (!user) new Exception(NOT_FOUND, 'User', '');
     return user;
   }
 
-  create(createUserDto: CreateUserDto): User {
+  async create(createUserDto: CreateUserDto) {
     const { login, password } = createUserDto;
     if (!login || !password) {
       new Exception(BAD_REQUEST, '', 'to create user provide', [
@@ -32,20 +34,23 @@ export class UserService {
         !password ? 'password' : '',
       ]);
     }
-    const user = new User(login, password);
-    this.userRepository.create(user);
+    const user: UserPrisma = new User(login, password);
+    await this.userRepository.create(user);
     return user;
   }
 
-  delete(userId: string): void {
+  async delete(userId: string) {
     if (!userId) {
       new Exception(BAD_REQUEST, '', 'to delete user, provide user ID.');
     }
-    const user = this.findOne(userId);
-    this.userRepository.delete(user);
+    const user = await this.findOne(userId);
+    if (!user) {
+      new Exception(NOT_FOUND, 'User', '');
+    }
+    await this.userRepository.delete(userId);
   }
 
-  updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto): User {
+  async updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto) {
     const { oldPassword, newPassword } = updatePasswordDto;
 
     if (!userId || !oldPassword || !newPassword) {
@@ -54,15 +59,18 @@ export class UserService {
         !newPassword ? 'new password' : '',
       ]);
     }
-    const user = this.findOne(userId);
+    const user = await this.findOne(userId);
     if (!user) {
       new Exception(NOT_FOUND, 'user', '');
     }
 
-    if (oldPassword !== user.getUserPassword()) {
+    if (oldPassword !== user.password) {
       new Exception(FORBIDDEN, '', 'old password is incorrect.');
     }
-    user.updateUserPassword(newPassword);
+    console.log('new password is ' + newPassword);
+    user.password = newPassword;
+    user.version = user.version + 1;
+    user.updatedAt = String(Date.now());
     return user;
   }
 }

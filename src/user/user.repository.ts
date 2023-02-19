@@ -1,24 +1,29 @@
-import { User } from './user.entity';
-import { database } from '../database/database';
+import { Injectable } from '@nestjs/common';
+import { UserPrisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
+@Injectable()
 export class UserRepository {
-  public findAll() {
-    return database.users;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  public async findAll() {
+    return await this.prismaService.userPrisma.findMany();
   }
 
-  public findOne(userId: string) {
-    const user = database.users.find((user) => user.getUserId() === userId);
+  public async findOne(userId: string) {
+    const user = await this.prismaService.userPrisma.findUnique({
+      where: { id: userId },
+    });
     return user;
   }
 
-  public create(user: User) {
-    database.users = [...database.users, user];
+  public async create(user: UserPrisma) {
+    await this.prismaService.userPrisma.create({
+      data: user,
+    });
   }
 
-  public delete(user: User) {
-    const index = database.users.indexOf(user);
-    if (index !== -1) {
-      database.users.splice(index, 1);
-    }
+  public async delete(userId: string) {
+    await this.prismaService.userPrisma.delete({ where: { id: userId } });
   }
 }
