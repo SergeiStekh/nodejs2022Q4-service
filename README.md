@@ -9,7 +9,7 @@
 
 ```
 1. git clone https://github.com/SergeyCodeJs/nodejs2022Q4-service.git
-2. Switch to develop branch.
+2. Switch to develop-docker branch.
 ```
 
 ## Installing NPM modules
@@ -17,6 +17,16 @@
 ```
 npm install
 ```
+
+## Download, install and run docker
+
+## Running docker 
+
+npm run start:docker
+
+## Make prisma migrations
+
+npx prisma migrate deploy
 
 ## Running application
 

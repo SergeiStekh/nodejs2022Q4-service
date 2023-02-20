@@ -2,7 +2,6 @@ import { Response } from 'express';
 import * as nestJS from '@nestjs/common';
 import { CreateTrackDto } from './dto/createTrackDto';
 import { TrackService } from './track.service';
-import { FavoritesService } from '../favorites/favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)
 @nestJS.Controller('track')

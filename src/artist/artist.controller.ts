@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import * as nestJS from '@nestjs/common';
 import { CreateArtistDto } from './dto/createArtistDto';
-import { Artist } from './artist.entity';
 import { ArtistService } from './artist.service';
 import { FavoritesService } from '../favorites/favorites.service';
 

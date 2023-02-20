@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import * as nestJS from '@nestjs/common';
-import { Favorites } from './favorites.entity';
 import { FavoritesService } from './favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)

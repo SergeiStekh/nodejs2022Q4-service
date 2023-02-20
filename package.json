@@ -13,6 +13,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "start:docker": "npm run docker:clean && docker network create app-network && docker-compose up --build",
+    "docker:clean": "docker container prune -f && docker volume prune -f && docker image prune -f &&  docker system prune -f",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --config ./test/jest-e2e.json",
     "test:auth": "cross-env TEST_MODE=auth jest --config ./test/jest-e2e.json",
