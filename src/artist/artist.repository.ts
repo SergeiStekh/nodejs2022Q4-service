@@ -1,23 +1,33 @@
-import { Artist } from './artist.entity';
-import { database } from '../database/database';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
+@Injectable()
 export class ArtistRepository {
-  public findAll() {
-    return database.artists;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  public async findAll() {
+    return await this.prismaService.artistPrisma.findMany();
   }
 
-  public findOne(artistId: string) {
-    return database.artists.find((artist) => artist.getArtistId() === artistId);
+  public async findOne(artistId: string) {
+    const artists = await this.prismaService.artistPrisma.findMany();
+    return artists.find((artist) => artist.id === artistId);
   }
 
-  public create(artist: Artist) {
-    database.artists = [...database.artists, artist];
+  public async create(artist) {
+    await this.prismaService.artistPrisma.create({
+      data: artist,
+    });
   }
 
-  public delete(artist: Artist) {
-    const index = database.artists.indexOf(artist);
-    if (index !== -1) {
-      database.artists.splice(index, 1);
-    }
+  public async update(artistId, updatedArtist) {
+    await this.prismaService.artistPrisma.update({
+      where: { id: artistId },
+      data: updatedArtist,
+    });
+  }
+
+  public async delete(artistId: string) {
+    await this.prismaService.artistPrisma.delete({ where: { id: artistId } });
   }
 }

@@ -1,16 +1,23 @@
 import { v4 as uuid } from 'uuid';
 
 export class Album {
-  private readonly id: string;
-  private name: string;
-  private year: number;
-  private artistId: string | null;
+  id: string;
+  name: string;
+  year: number;
+  artistId: string | null;
+  favoritesId: string | null;
 
-  constructor(name: string, year: number, artistId: string | null) {
+  constructor(
+    name: string,
+    year: number,
+    artistId: string | null,
+    favoritesId: string | null = null,
+  ) {
     this.id = uuid();
     this.name = name;
     this.year = year;
     this.artistId = artistId;
+    this.favoritesId = favoritesId;
   }
 
   public updateAlbum(

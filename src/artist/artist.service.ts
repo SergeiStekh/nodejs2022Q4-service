@@ -7,22 +7,23 @@ import {
 } from '../utils/exceptionsGenerator';
 import { Artist } from './artist.entity';
 import { ArtistRepository } from './artist.repository';
+import { ArtistPrisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
   constructor(private readonly artistRepository: ArtistRepository) {}
 
-  findAll(): Artist[] {
-    return this.artistRepository.findAll();
+  async findAll() {
+    return await this.artistRepository.findAll();
   }
 
-  findOne(artistId: string): Artist {
-    const artist = this.artistRepository.findOne(artistId);
+  async findOne(artistId: string) {
+    const artist = await this.artistRepository.findOne(artistId);
     if (!artist) new Exception(NOT_FOUND, 'Artist', '');
     return artist;
   }
 
-  createArtist(createArtistDto: CreateArtistDto): Artist {
+  async createArtist(createArtistDto: CreateArtistDto) {
     const { name, grammy } = createArtistDto;
     if (!name || grammy === undefined) {
       new Exception(BAD_REQUEST, '', 'to create artist provide', [
@@ -33,16 +34,16 @@ export class ArtistService {
     if (typeof createArtistDto.grammy !== 'boolean') {
       new Exception(BAD_REQUEST, '', 'Grammy field should be type of boolean');
     }
-    const artist = new Artist(name, grammy);
-    this.artistRepository.create(artist);
+    const artist: ArtistPrisma = new Artist(name, grammy);
+    await this.artistRepository.create(artist);
     return artist;
   }
 
-  updateArtist(artistId: string, createArtistDto: CreateArtistDto) {
+  async updateArtist(artistId: string, createArtistDto: CreateArtistDto) {
     if (!artistId) {
       new Exception(BAD_REQUEST, '', "to update artist, provide artist's ID.");
     }
-    const artist = this.findOne(artistId);
+    const artist = await this.findOne(artistId);
     if (!artist) new Exception(NOT_FOUND, 'Artist', '');
     const { name, grammy } = createArtistDto;
     if (!name || grammy === undefined) {
@@ -56,18 +57,21 @@ export class ArtistService {
     if (typeof grammy !== 'boolean') {
       new Exception(BAD_REQUEST, '', 'grammy field should be type of boolean');
     }
-    artist.updateArtist(createArtistDto.name, createArtistDto.grammy);
+    await this.artistRepository.update(artistId, {
+      name: createArtistDto.name,
+      grammy: createArtistDto.grammy,
+    });
     return artist;
   }
 
-  deleteArtist(artistId: string): void {
+  async deleteArtist(artistId: string) {
     if (!artistId) {
       new Exception(BAD_REQUEST, '', "to delete artist, provide artist's ID.");
     }
-    const artist = this.findOne(artistId);
+    const artist = await this.findOne(artistId);
     if (!artist) {
       new Exception(NOT_FOUND, 'Artist', '');
     }
-    this.artistRepository.delete(artist);
+    await this.artistRepository.delete(artistId);
   }
 }

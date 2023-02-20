@@ -1,29 +1,40 @@
 import { Album } from './album.entity';
 import { database } from '../database/database';
+import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class AlbumRepository {
-  public findAll() {
-    return database.albums;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  public async findAll() {
+    return await this.prismaService.albumPrisma.findMany();
   }
 
-  public findAllByArtist(artistId: string) {
-    return database.albums.find(
-      (album) => album.getAlbumArtistId() === artistId,
-    );
+  public async findAllByArtist(artistId: string) {
+    const albums = await this.prismaService.albumPrisma.findMany();
+    return albums.find((album) => album.artistId === artistId);
   }
 
-  public findOne(albumId: string) {
-    return database.albums.find((album) => album.getAlbumId() === albumId);
+  public async findOne(albumId: string) {
+    const albums = await this.prismaService.albumPrisma.findMany();
+    return albums.find((album) => album.id === albumId);
   }
 
-  public create(album: Album) {
-    database.albums = [...database.albums, album];
+  public async create(album) {
+    await this.prismaService.albumPrisma.create({
+      data: album,
+    });
   }
 
-  public delete(album: Album) {
-    const index = database.albums.indexOf(album);
-    if (index !== -1) {
-      database.albums.splice(index, 1);
-    }
+  public async update(albumId, updatedAlbum) {
+    await this.prismaService.albumPrisma.update({
+      where: { id: albumId },
+      data: updatedAlbum,
+    });
+  }
+
+  public async delete(albumId: string) {
+    await this.prismaService.albumPrisma.delete({ where: { id: albumId } });
   }
 }

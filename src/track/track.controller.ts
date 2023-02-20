@@ -1,49 +1,44 @@
 import { Response } from 'express';
 import * as nestJS from '@nestjs/common';
 import { CreateTrackDto } from './dto/createTrackDto';
-import { Track } from './track.entity';
 import { TrackService } from './track.service';
 import { FavoritesService } from '../favorites/favorites.service';
 
 @nestJS.UseInterceptors(nestJS.ClassSerializerInterceptor)
 @nestJS.Controller('track')
 export class TrackController {
-  constructor(
-    private readonly trackService: TrackService,
-    private readonly favoritesService: FavoritesService,
-  ) {}
+  constructor(private readonly trackService: TrackService) {}
 
   @nestJS.Get(':id')
-  findOne(@nestJS.Param('id', nestJS.ParseUUIDPipe) id: string): Track {
-    return this.trackService.findOne(id);
+  async findOne(@nestJS.Param('id', nestJS.ParseUUIDPipe) id: string) {
+    return await this.trackService.findOne(id);
   }
 
   @nestJS.Get()
-  findAll(): Track[] {
-    return this.trackService.findAll();
+  async findAll() {
+    return await this.trackService.findAll();
   }
 
   @nestJS.Post()
-  create(@nestJS.Body() createTrackDto: CreateTrackDto): Track {
-    return this.trackService.createTrack(createTrackDto);
+  async create(@nestJS.Body() createTrackDto: CreateTrackDto) {
+    return await this.trackService.createTrack(createTrackDto);
   }
 
   @nestJS.Put(':id')
-  update(
+  async update(
     @nestJS.Param('id', nestJS.ParseUUIDPipe) id: string,
     @nestJS.Body() createTrackDto: CreateTrackDto,
-  ): Track {
-    return this.trackService.updateTrack(id, createTrackDto);
+  ) {
+    return await this.trackService.updateTrack(id, createTrackDto);
   }
 
   @nestJS.Delete(':id')
   @nestJS.HttpCode(nestJS.HttpStatus.NO_CONTENT)
-  delete(
+  async delete(
     @nestJS.Res() res: Response,
     @nestJS.Param('id', nestJS.ParseUUIDPipe) id: string,
   ) {
-    this.favoritesService.removeTrackFromFavorites(id);
-    this.trackService.deleteTrack(id);
+    await this.trackService.deleteTrack(id);
     res.status(nestJS.HttpStatus.NO_CONTENT).json([]);
   }
 }

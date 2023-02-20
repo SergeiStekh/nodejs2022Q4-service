@@ -1,14 +1,16 @@
 import { v4 as uuid } from 'uuid';
 
 export class Artist {
-  private readonly id: string;
-  private name: string;
-  private grammy: boolean;
+  id: string;
+  name: string;
+  grammy: boolean;
+  favoritesId: string | null;
 
-  constructor(name: string, grammy = false) {
+  constructor(name: string, grammy = false, favoritesId = null) {
     this.id = uuid();
     this.name = name;
     this.grammy = grammy;
+    this.favoritesId = favoritesId;
   }
 
   public updateArtist(name: string, grammy: boolean): void {

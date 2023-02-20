@@ -6,18 +6,12 @@ import {
   BAD_REQUEST,
 } from '../utils/exceptionsGenerator';
 import { Track } from './track.entity';
-import { AlbumRepository } from '../album/album.repository';
-import { ArtistRepository } from '../artist/artist.repository';
 import { TrackRepository } from './track.repository';
 import { TrackPrisma } from '@prisma/client';
 
 @Injectable()
 export class TrackService {
-  constructor(
-    private readonly trackRepository: TrackRepository,
-    private readonly albumRepository: AlbumRepository,
-    private readonly artistRepository: ArtistRepository,
-  ) {}
+  constructor(private readonly trackRepository: TrackRepository) {}
 
   async findAll() {
     return await this.trackRepository.findAll();
@@ -62,22 +56,6 @@ export class TrackService {
         BAD_REQUEST,
         '',
         'albumId field should be type of string or null',
-      );
-    }
-    const album = await this.albumRepository.findOne(albumId);
-    if (!album && albumId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such album with provided albumId',
-      );
-    }
-    const artist = await this.artistRepository.findOne(artistId);
-    if (!artist && artistId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such artist with provided artistId',
       );
     }
     const track: TrackPrisma = new Track(name, artistId, albumId, duration);
@@ -126,22 +104,22 @@ export class TrackService {
         'albumId field should be type of string or null',
       );
     }
-    const album = await this.albumRepository.findOne(albumId);
-    if (!album && albumId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such album with provided albumId',
-      );
-    }
-    const artist = await this.artistRepository.findOne(artistId);
-    if (!artist && artistId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such artist with provided artistId',
-      );
-    }
+    // const album = await this.albumRepository.findOne(albumId);
+    // if (!album && albumId !== null) {
+    //   new Exception(
+    //     BAD_REQUEST,
+    //     '',
+    //     'there is no such album with provided albumId',
+    //   );
+    // }
+    // const artist = await this.artistRepository.findOne(artistId);
+    // if (!artist && artistId !== null) {
+    //   new Exception(
+    //     BAD_REQUEST,
+    //     '',
+    //     'there is no such artist with provided artistId',
+    //   );
+    // }
     await this.trackRepository.update(trackId, {
       name: createTrackDto.name,
       artistId: createTrackDto.artistId,

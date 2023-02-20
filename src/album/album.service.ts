@@ -7,26 +7,23 @@ import {
 } from '../utils/exceptionsGenerator';
 import { Album } from './album.entity';
 import { AlbumRepository } from './album.repository';
-import { ArtistRepository } from '../artist/artist.repository';
+import { AlbumPrisma } from '@prisma/client';
 
 @Injectable()
 export class AlbumService {
-  constructor(
-    private readonly albumRepository: AlbumRepository,
-    private readonly artistRepository: ArtistRepository,
-  ) {}
+  constructor(private readonly albumRepository: AlbumRepository) {}
 
-  findAll(): Album[] {
-    return this.albumRepository.findAll();
+  async findAll() {
+    return await this.albumRepository.findAll();
   }
 
-  findOne(albumId: string): Album {
-    const album = this.albumRepository.findOne(albumId);
+  async findOne(albumId: string) {
+    const album = await this.albumRepository.findOne(albumId);
     if (!album) new Exception(NOT_FOUND, 'Album', '');
     return album;
   }
 
-  createAlbum(createAlbumDto: CreateAlbumDto): Album {
+  async createAlbum(createAlbumDto: CreateAlbumDto) {
     const { name, year, artistId } = createAlbumDto;
     if (!name || !year || artistId === undefined) {
       new Exception(BAD_REQUEST, '', 'to create album provide', [
@@ -48,23 +45,17 @@ export class AlbumService {
         'artistId field should be type of string or null',
       );
     }
-    if (!this.artistRepository.findOne(artistId) && artistId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such artist with provided artistId',
-      );
-    }
-    const album = new Album(name, year, artistId);
-    this.albumRepository.create(album);
+
+    const album: AlbumPrisma = new Album(name, year, artistId);
+    await this.albumRepository.create(album);
     return album;
   }
 
-  updateAlbum(albumId: string, createAlbumDto: CreateAlbumDto) {
+  async updateAlbum(albumId: string, createAlbumDto: CreateAlbumDto) {
     if (!albumId) {
       new Exception(BAD_REQUEST, '', "to update album, provide album's ID.");
     }
-    const album = this.findOne(albumId);
+    const album = await this.findOne(albumId);
     if (!album) new Exception(NOT_FOUND, 'Album', '');
     const { name, year, artistId } = createAlbumDto;
     if (!name || !year || artistId === undefined) {
@@ -87,29 +78,23 @@ export class AlbumService {
         'artistId field should be type of string or null',
       );
     }
-    if (!this.artistRepository.findOne(artistId) && artistId !== null) {
-      new Exception(
-        BAD_REQUEST,
-        '',
-        'there is no such artist with provided artistId',
-      );
-    }
-    album.updateAlbum(
-      createAlbumDto.name,
-      createAlbumDto.year,
-      createAlbumDto.artistId,
-    );
+
+    await this.albumRepository.update(albumId, {
+      name: createAlbumDto.name,
+      year: createAlbumDto.year,
+      artistId: createAlbumDto.artistId,
+    });
     return album;
   }
 
-  deleteAlbum(albumId: string): void {
+  async deleteAlbum(albumId: string) {
     if (!albumId) {
       new Exception(BAD_REQUEST, '', "to delete album, provide album's ID.");
     }
-    const album = this.findOne(albumId);
+    const album = await this.findOne(albumId);
     if (!album) {
       new Exception(NOT_FOUND, 'Album', '');
     }
-    this.albumRepository.delete(album);
+    await this.albumRepository.delete(albumId);
   }
 }

@@ -1,67 +1,152 @@
-import { database } from '../database/database';
+import { Injectable } from '@nestjs/common';
+import { AlbumPrisma, ArtistPrisma, TrackPrisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
+@Injectable()
 export class FavoritesRepository {
-  public findAll() {
-    return database.favorites;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  public async findAll() {
+    const [favEntity] = await this.prismaService.favoritesPrisma.findMany({
+      select: {
+        artists: {
+          select: { id: true, name: true, grammy: true },
+        },
+        albums: {
+          select: { id: true, name: true, year: true, artistId: true },
+        },
+        tracks: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+            artistId: true,
+            albumId: true,
+          },
+        },
+      },
+    });
+
+    if (!favEntity) {
+      return {
+        artists: [],
+        albums: [],
+        tracks: [],
+      };
+    }
+    return favEntity;
   }
 
-  public isArtistInFavorites(artistId: string) {
-    const artistIndex = database.favorites.artists.indexOf(artistId);
-    if (artistIndex !== -1) {
-      return true;
+  public async isArtistInFavorites(artistId: string) {
+    const [artistEntity] = await this.prismaService.favoritesPrisma.findMany({
+      select: {
+        artists: {
+          select: { id: true },
+        },
+      },
+    });
+    return !!artistEntity.artists.filter((el) => el.id === artistId).length;
+  }
+
+  public async addArtistToFavorites(artistId: string, artist: ArtistPrisma) {
+    const favorites = await this.prismaService.favoritesPrisma.findMany();
+    if (!favorites.length) {
+      const emptyFavorites = await this.prismaService.favoritesPrisma.create({
+        data: {},
+      });
+      await this.prismaService.artistPrisma.update({
+        where: { id: artistId },
+        data: { favoritesId: emptyFavorites.id },
+      });
     } else {
-      return false;
+      await this.prismaService.artistPrisma.update({
+        where: { id: artistId },
+        data: { favoritesId: favorites[0].id },
+      });
     }
+    return artist;
   }
 
-  public addArtistToFavorites(artistId: string) {
-    database.favorites.artists = [...database.favorites.artists, artistId];
+  public async removeArtistFromFavorites(artistId: string) {
+    await this.prismaService.artistPrisma.update({
+      where: { id: artistId },
+      data: { favoritesId: { set: null } },
+    });
   }
 
-  public removeArtistFromFavorites(artistId: string) {
-    const index = database.favorites.artists.indexOf(artistId);
-    if (index !== -1) {
-      database.favorites.artists.splice(index, 1);
-    }
+  public async isAlbumInFavorites(albumId) {
+    const [albumEntity] = await this.prismaService.favoritesPrisma.findMany({
+      select: {
+        albums: {
+          select: { id: true },
+        },
+      },
+    });
+    return !!albumEntity.albums.filter((el) => el.id === albumId).length;
   }
 
-  public isAlbumInFavorites(albumId) {
-    const albumIndex = database.favorites.albums.indexOf(albumId);
-    if (albumIndex !== -1) {
-      return true;
+  public async addAlbumToFavorites(albumId: string, album: AlbumPrisma) {
+    const favorites = await this.prismaService.favoritesPrisma.findMany();
+
+    if (!favorites.length) {
+      const newFavorites = await this.prismaService.favoritesPrisma.create({
+        data: {},
+      });
+      await this.prismaService.albumPrisma.update({
+        where: { id: albumId },
+        data: { favoritesId: newFavorites.id },
+      });
     } else {
-      return false;
+      await this.prismaService.albumPrisma.update({
+        where: { id: albumId },
+        data: { favoritesId: favorites[0].id },
+      });
     }
+    return album;
   }
 
-  public addAlbumToFavorites(albumId: string) {
-    database.favorites.albums = [...database.favorites.albums, albumId];
+  public async removeAlbumFromFavorites(albumId: string) {
+    await this.prismaService.albumPrisma.update({
+      where: { id: albumId },
+      data: { favoritesId: { set: null } },
+    });
   }
 
-  public removeAlbumFromFavorites(albumId: string) {
-    const albumIndex = database.favorites.albums.indexOf(albumId);
-    if (albumIndex !== -1) {
-      database.albums.splice(albumIndex, 1);
-    }
+  public async isTrackInFavorites(trackId: string) {
+    const [trackEntity] = await this.prismaService.favoritesPrisma.findMany({
+      select: {
+        tracks: {
+          select: { id: true },
+        },
+      },
+    });
+    return !!trackEntity.tracks.filter((el) => el.id === trackId).length;
   }
 
-  public isTrackInFavorites(trackId: string) {
-    const trackIndex = database.favorites.tracks.indexOf(trackId);
-    if (trackIndex !== -1) {
-      return true;
+  public async addTrackToFavorites(trackId: string, track: TrackPrisma) {
+    const favorites = await this.prismaService.favoritesPrisma.findMany();
+
+    if (!favorites.length) {
+      const newFavorites = await this.prismaService.favoritesPrisma.create({
+        data: {},
+      });
+      await this.prismaService.trackPrisma.update({
+        where: { id: trackId },
+        data: { favoritesId: newFavorites.id },
+      });
     } else {
-      return false;
+      await this.prismaService.trackPrisma.update({
+        where: { id: trackId },
+        data: { favoritesId: favorites[0].id },
+      });
     }
+    return track;
   }
 
-  public addTrackToFavorites(trackId) {
-    database.favorites.tracks = [...database.favorites.tracks, trackId];
-  }
-
-  public removeTrackFromFavorites(trackId) {
-    const trackIndex = database.favorites.tracks.indexOf(trackId);
-    if (trackIndex !== -1) {
-      database.favorites.tracks.splice(trackIndex, 1);
-    }
+  public async removeTrackFromFavorites(trackId) {
+    await this.prismaService.trackPrisma.update({
+      where: { id: trackId },
+      data: { favoritesId: { set: null } },
+    });
   }
 }

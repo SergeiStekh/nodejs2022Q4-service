@@ -9,7 +9,7 @@ export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @nestJS.Get()
-  findAll(): Favorites {
+  findAll() {
     return this.favoritesService.findAll();
   }
 

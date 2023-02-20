@@ -1,12 +1,14 @@
-import { Track } from './track.entity';
-import { database } from '../database/database';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+@Injectable()
 export class TrackRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   public async findAll() {
-    return await this.prismaService.trackPrisma.findMany();
+    if (this.prismaService.trackPrisma) {
+      return await this.prismaService.trackPrisma.findMany();
+    }
   }
 
   public async findAllTracksByArtist(artistId: string) {
@@ -21,7 +23,7 @@ export class TrackRepository {
 
   public async findOne(trackId: string) {
     const tracks = await this.prismaService.trackPrisma.findMany();
-    return await tracks.find((track) => track.id === trackId);
+    return tracks.find((track) => track.id === trackId);
   }
 
   public async create(track) {
