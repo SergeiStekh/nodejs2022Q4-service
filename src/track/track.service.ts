@@ -9,6 +9,7 @@ import { Track } from './track.entity';
 import { AlbumRepository } from '../album/album.repository';
 import { ArtistRepository } from '../artist/artist.repository';
 import { TrackRepository } from './track.repository';
+import { TrackPrisma } from '@prisma/client';
 
 @Injectable()
 export class TrackService {
@@ -18,17 +19,17 @@ export class TrackService {
     private readonly artistRepository: ArtistRepository,
   ) {}
 
-  findAll(): Track[] {
-    return this.trackRepository.findAll();
+  async findAll() {
+    return await this.trackRepository.findAll();
   }
 
-  findOne(trackId: string): Track {
-    const track = this.trackRepository.findOne(trackId);
+  async findOne(trackId: string) {
+    const track = await this.trackRepository.findOne(trackId);
     if (!track) new Exception(NOT_FOUND, 'Track', '');
     return track;
   }
 
-  createTrack(createTrackDto: CreateTrackDto): Track {
+  async createTrack(createTrackDto: CreateTrackDto) {
     const { name, artistId, albumId, duration } = createTrackDto;
     if (
       !name ||
@@ -63,30 +64,32 @@ export class TrackService {
         'albumId field should be type of string or null',
       );
     }
-    if (!this.albumRepository.findOne(albumId) && albumId !== null) {
+    const album = await this.albumRepository.findOne(albumId);
+    if (!album && albumId !== null) {
       new Exception(
         BAD_REQUEST,
         '',
         'there is no such album with provided albumId',
       );
     }
-    if (!this.artistRepository.findOne(artistId) && artistId !== null) {
+    const artist = await this.artistRepository.findOne(artistId);
+    if (!artist && artistId !== null) {
       new Exception(
         BAD_REQUEST,
         '',
         'there is no such artist with provided artistId',
       );
     }
-    const track = new Track(name, artistId, albumId, duration);
-    this.trackRepository.create(track);
+    const track: TrackPrisma = new Track(name, artistId, albumId, duration);
+    await this.trackRepository.create(track);
     return track;
   }
 
-  updateTrack(trackId: string, createTrackDto: CreateTrackDto) {
+  async updateTrack(trackId: string, createTrackDto: CreateTrackDto) {
     if (!trackId) {
       new Exception(BAD_REQUEST, '', "to update track, provide track's ID.");
     }
-    const track = this.findOne(trackId);
+    const track = await this.findOne(trackId);
     if (!track) new Exception(NOT_FOUND, 'Track', '');
     const { name, artistId, albumId, duration } = createTrackDto;
 
@@ -96,7 +99,7 @@ export class TrackService {
       albumId === undefined ||
       duration === undefined
     ) {
-      new Exception(BAD_REQUEST, '', 'to create track provide', [
+      new Exception(BAD_REQUEST, '', 'to update track provide', [
         !name ? 'name' : '',
         artistId === undefined ? 'artistId' : '',
         albumId === undefined ? 'albumId' : '',
@@ -123,37 +126,39 @@ export class TrackService {
         'albumId field should be type of string or null',
       );
     }
-    if (!this.albumRepository.findOne(albumId) && albumId !== null) {
+    const album = await this.albumRepository.findOne(albumId);
+    if (!album && albumId !== null) {
       new Exception(
         BAD_REQUEST,
         '',
         'there is no such album with provided albumId',
       );
     }
-    if (!this.artistRepository.findOne(artistId) && artistId !== null) {
+    const artist = await this.artistRepository.findOne(artistId);
+    if (!artist && artistId !== null) {
       new Exception(
         BAD_REQUEST,
         '',
         'there is no such artist with provided artistId',
       );
     }
-    track.updateTrack(
-      createTrackDto.name,
-      createTrackDto.artistId,
-      createTrackDto.albumId,
-      createTrackDto.duration,
-    );
+    await this.trackRepository.update(trackId, {
+      name: createTrackDto.name,
+      artistId: createTrackDto.artistId,
+      albumId: createTrackDto.albumId,
+      duration: createTrackDto.duration,
+    });
     return track;
   }
 
-  deleteTrack(trackId: string): void {
+  async deleteTrack(trackId: string) {
     if (!trackId) {
       new Exception(BAD_REQUEST, '', "to delete track, provide track's ID.");
     }
-    const track = this.findOne(trackId);
+    const track = await this.findOne(trackId);
     if (!track) {
       new Exception(NOT_FOUND, 'Track', '');
     }
-    this.trackRepository.delete(track);
+    this.trackRepository.delete(trackId);
   }
 }

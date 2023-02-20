@@ -1,31 +1,43 @@
 import { Track } from './track.entity';
 import { database } from '../database/database';
+import { PrismaService } from '../prisma/prisma.service';
 
 export class TrackRepository {
-  public findAll() {
-    return database.tracks;
+  constructor(private readonly prismaService: PrismaService) {}
+
+  public async findAll() {
+    return await this.prismaService.trackPrisma.findMany();
   }
 
-  public findAllTracksByArtist(artistId: string) {
-    return database.tracks.find((track) => track.getArtistId() === artistId);
+  public async findAllTracksByArtist(artistId: string) {
+    const tracks = await this.prismaService.trackPrisma.findMany();
+    return tracks.find((track) => track.artistId === artistId);
   }
 
-  public findAllTracksByAlbum(albumId: string) {
-    return database.tracks.find((track) => track.getAlbumId() === albumId);
+  public async findAllTracksByAlbum(albumId: string) {
+    const tracks = await this.prismaService.trackPrisma.findMany();
+    return await tracks.find((track) => track.albumId === albumId);
   }
 
-  public findOne(trackId: string) {
-    return database.tracks.find((track) => track.getTrackId() === trackId);
+  public async findOne(trackId: string) {
+    const tracks = await this.prismaService.trackPrisma.findMany();
+    return await tracks.find((track) => track.id === trackId);
   }
 
-  public create(track: Track) {
-    database.tracks = [...database.tracks, track];
+  public async create(track) {
+    await this.prismaService.trackPrisma.create({
+      data: track,
+    });
   }
 
-  public delete(track: Track) {
-    const index = database.tracks.indexOf(track);
-    if (index !== -1) {
-      database.tracks.splice(index, 1);
-    }
+  public async delete(trackId: string) {
+    await this.prismaService.trackPrisma.delete({ where: { id: trackId } });
+  }
+
+  public async update(trackId: string, updatedTrack) {
+    await await this.prismaService.trackPrisma.update({
+      where: { id: trackId },
+      data: updatedTrack,
+    });
   }
 }
