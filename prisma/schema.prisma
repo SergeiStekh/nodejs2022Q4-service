@@ -17,6 +17,8 @@ model UserPrisma {
   version  Int      @default(1)
   createdAt String
   updatedAt String
+  token String?
+  refreshToken String?
 }
 
 model ArtistPrisma {

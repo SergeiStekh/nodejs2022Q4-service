@@ -10,6 +10,13 @@ export class UserRepository {
     return await this.prismaService.userPrisma.findMany();
   }
 
+  public async findOneWithLogin(login: string) {
+    const user = await this.prismaService.userPrisma.findFirst({
+      where: { login },
+    });
+    return user;
+  }
+
   public async findOne(userId: string) {
     const user = await this.prismaService.userPrisma.findUnique({
       where: { id: userId },
@@ -43,5 +50,23 @@ export class UserRepository {
         updatedAt: updatedAt,
       },
     });
+  }
+
+  public async updateToken(userId: string, refreshToken: string) {
+    const user = await this.prismaService.userPrisma.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    const updatedUser = await this.prismaService.userPrisma.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        ...user,
+        refreshToken,
+      },
+    });
+    return updatedUser;
   }
 }

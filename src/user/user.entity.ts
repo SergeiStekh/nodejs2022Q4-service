@@ -9,14 +9,23 @@ export class User {
   version: number;
   createdAt: string;
   updatedAt: string;
+  token: string | null;
+  refreshToken: string | null;
 
-  constructor(login: string, password: string) {
+  constructor(
+    login: string,
+    password: string,
+    token: string | null = null,
+    refreshToken: string | null = null,
+  ) {
     this.id = uuid();
     this.login = login;
     this.password = password;
     this.version = VERSION;
     this.createdAt = String(Date.now());
     this.updatedAt = String(Date.now());
+    this.token = token;
+    this.refreshToken = refreshToken;
   }
 
   public updateUserPassword(updatedPassword: string): void {

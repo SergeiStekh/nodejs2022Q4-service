@@ -20,6 +20,11 @@ export class UserService {
     return user;
   }
 
+  async findOneWithLogin(login: string) {
+    const user = await this.userRepository.findOneWithLogin(login);
+    return user;
+  }
+
   async findOne(userId: string) {
     const user = await this.userRepository.findOne(userId);
     if (!user) new Exception(NOT_FOUND, 'User', '');
@@ -78,5 +83,13 @@ export class UserService {
       user.updatedAt,
     );
     return user;
+  }
+
+  async updateToken(id: string, refreshToken: string) {
+    const user = await this.findOne(id);
+    if (!user) {
+      new Exception(BAD_REQUEST, '', 'User not found');
+    }
+    return await this.userRepository.updateToken(id, refreshToken);
   }
 }

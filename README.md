@@ -26,7 +26,7 @@ npm run start:docker
 
 ## Make prisma migrations
 
-npx prisma migrate deploy
+npx prisma migrate dev
 
 ## Running application
 

@@ -6,6 +6,8 @@ CREATE TABLE "UserPrisma" (
     "version" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TEXT NOT NULL,
     "updatedAt" TEXT NOT NULL,
+    "token" TEXT,
+    "refreshToken" TEXT,
 
     CONSTRAINT "UserPrisma_pkey" PRIMARY KEY ("id")
 );
