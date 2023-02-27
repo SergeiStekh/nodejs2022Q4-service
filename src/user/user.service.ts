@@ -1,95 +1,90 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/createUserDto';
+import { UserDto } from './dto/userDto';
 import { UpdatePasswordDto } from './dto/updatePasswordDto';
-import {
-  Exception,
-  NOT_FOUND,
-  FORBIDDEN,
-  BAD_REQUEST,
-} from '../utils/exceptionsGenerator';
 import { UserPrisma } from '@prisma/client';
-import { UserRepository } from './user.repository';
 import { User } from './user.entity';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async findAll() {
-    const user = await this.userRepository.findAll();
+    const user = await this.prismaService.userPrisma.findMany();
+    return user;
+  }
+
+  async findOneWithId(id: string) {
+    const user = await this.prismaService.userPrisma.findUnique({
+      where: {
+        id,
+      },
+    });
     return user;
   }
 
   async findOneWithLogin(login: string) {
-    const user = await this.userRepository.findOneWithLogin(login);
+    const user = await this.prismaService.userPrisma.findFirst({
+      where: {
+        login,
+      },
+    });
     return user;
   }
 
-  async findOne(userId: string) {
-    const user = await this.userRepository.findOne(userId);
-    if (!user) new Exception(NOT_FOUND, 'User', '');
-    return user;
+  async create(UserDto: UserDto) {
+    const { login, password } = UserDto;
+    const userData: UserPrisma = new User(login, password);
+    const newUser = await this.prismaService.userPrisma.create({
+      data: userData,
+    });
+    return newUser;
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const { login, password } = createUserDto;
-    if (!login || !password) {
-      new Exception(BAD_REQUEST, '', 'to create user provide', [
-        !login ? 'login' : '',
-        !password ? 'password' : '',
-      ]);
-    }
-    const user: UserPrisma = new User(login, password);
-    await this.userRepository.create(user);
-    return user;
+  async delete(id: string) {
+    await this.prismaService.userPrisma.delete({
+      where: {
+        id,
+      },
+    });
   }
 
-  async delete(userId: string) {
-    if (!userId) {
-      new Exception(BAD_REQUEST, '', 'to delete user, provide user ID.');
-    }
-    const user = await this.findOne(userId);
-    if (!user) {
-      new Exception(NOT_FOUND, 'User', '');
-    }
-    await this.userRepository.delete(userId);
-  }
+  async updatePassword(id: string, passwordDto: UpdatePasswordDto) {
+    const { newPassword } = passwordDto;
+    const user = await this.prismaService.userPrisma.findUnique({
+      where: {
+        id,
+      },
+    });
 
-  async updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto) {
-    const { oldPassword, newPassword } = updatePasswordDto;
-
-    if (!userId || !oldPassword || !newPassword) {
-      new Exception(BAD_REQUEST, '', 'provide', [
-        !oldPassword ? 'old password' : '',
-        !newPassword ? 'new password' : '',
-      ]);
-    }
-    const user = await this.findOne(userId);
-    if (!user) {
-      new Exception(NOT_FOUND, 'user', '');
-    }
-
-    if (oldPassword !== user.password) {
-      new Exception(FORBIDDEN, '', 'old password is incorrect.');
-    }
-    user.password = newPassword;
-    user.version = user.version + 1;
-    user.updatedAt = String(Date.now());
-
-    await this.userRepository.updatePassword(
-      userId,
-      user.password,
-      user.version,
-      user.updatedAt,
-    );
-    return user;
+    const updatedUser = await this.prismaService.userPrisma.update({
+      where: {
+        id,
+      },
+      data: {
+        password: newPassword,
+        version: user.version + 1,
+      },
+    });
+    return updatedUser;
   }
 
   async updateToken(id: string, refreshToken: string) {
-    const user = await this.findOne(id);
-    if (!user) {
-      new Exception(BAD_REQUEST, '', 'User not found');
-    }
-    return await this.userRepository.updateToken(id, refreshToken);
+    const user = await this.prismaService.userPrisma.findUnique({
+      where: {
+        id,
+      },
+    });
+    const updatedData = {
+      ...user,
+      refreshToken,
+    };
+    const updatedUser = await this.prismaService.userPrisma.update({
+      where: {
+        id,
+      },
+      data: updatedData,
+    });
+    return updatedUser;
   }
 }

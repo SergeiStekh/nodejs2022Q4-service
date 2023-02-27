@@ -1,12 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from '../user/dto/createUserDto';
+import { UserDto } from '../user/dto/userDto';
 import { UserService } from '../user/user.service';
 import * as argon from 'argon2';
-import { UserPrisma } from '@prisma/client';
 import { JWTInterface } from './ts-interfaces/jwt.interface';
 import { User } from '../user/user.entity';
-import { Exception, BAD_REQUEST } from '../utils/exceptionsGenerator';
+import {
+  Exception,
+  BAD_REQUEST,
+  NOT_FOUND,
+} from '../utils/exceptionsGenerator';
 
 const secret = process.env.JWT_SECRET_KEY;
 const expiresIn = process.env.TOKEN_EXPIRES_IN;
@@ -21,43 +24,54 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDTO: CreateUserDto) {
-    const { login, password } = createUserDTO;
+  async signUp(userDTO: UserDto) {
+    const { login, password } = userDTO;
     const user = await this.userService.findOneWithLogin(login);
     if (user) {
       new Exception(BAD_REQUEST, '', 'User is exist');
-      return;
     }
-    const hashedPassword = await this.getHash(password);
-    const newUser: UserPrisma = new User(login, hashedPassword);
-    //await this.userService.create(createUserDTO);
-    const tokens = await this.getAccessAndJWTTokens(newUser);
-    await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+    const hashedPassword = await this.getArgonHash(password);
+    const newUser = await this.userService.create({
+      login: login,
+      password: hashedPassword,
+    });
+    const { id: newUserId, login: newUserLogin } = newUser;
+    const tokens = await this.getAccessAndJWTTokens({
+      id: newUserId,
+      login: newUserLogin,
+    });
+    await this.updateRefreshToken(newUserId, tokens.refreshToken);
     return tokens;
   }
 
-  async login(authUserDto: CreateUserDto) {
+  async login(authUserDto: UserDto) {
     const { login, password } = authUserDto;
     const user = await this.userService.findOneWithLogin(login);
     if (!user) {
       new Exception(BAD_REQUEST, 'There is no user found');
     }
     const isPasswordRight = await argon.verify(user.password, password);
+
     if (!isPasswordRight) {
       new Exception(BAD_REQUEST, 'Provided login or password is invalid');
     }
-    const tokens = await this.getAccessAndJWTTokens({ login, password });
+
+    const tokens = await this.getAccessAndJWTTokens({
+      id: user.id,
+      login: user.login,
+    });
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
 
-  async getHash(value: string) {
+  async getArgonHash(value: string) {
     return argon.hash(value);
   }
 
   async getAccessAndJWTTokens(user: Partial<User>) {
     const { id, login } = user;
     const payload: JWTInterface = { sub: id, login };
+
     return {
       accessToken: await this.jwtService.signAsync(payload, {
         secret,
@@ -71,25 +85,34 @@ export class AuthService {
   }
 
   async updateRefreshToken(id: string, refreshToken: string) {
-    await this.userService.updateToken(id, refreshToken);
+    const hash = await this.getArgonHash(refreshToken);
+    await this.userService.updateToken(id, hash);
   }
 
-  async refreshAuthTokens(userId: string, refreshToken: string) {
-    const user = await this.userService.findOne(userId);
-    if (!user) {
-      new Exception(BAD_REQUEST, 'user with such id not found');
-    }
+  async refreshAuthTokens(refreshToken: string) {
+    const data = await this.jwtService.verifyAsync(refreshToken, {
+      secret: refreshSecret,
+    });
+    const id = data.sub;
 
-    if (!user.refreshToken) {
-      new Exception(BAD_REQUEST, 'provided data for auth is invalid');
-    }
-
-    if (user.refreshToken !== refreshToken) {
+    if (!id) {
       new Exception(BAD_REQUEST, 'token is invalid');
     }
+    const user = await this.userService.findOneWithId(id);
+    if (!user) {
+      new Exception(NOT_FOUND, '', `user with id ${id} not found`);
+    }
 
-    const tokens = await this.getAccessAndJWTTokens(user);
-    await this.updateRefreshToken(user.id, refreshToken);
+    const isTokenEqual = await argon.verify(user.refreshToken, refreshToken);
+
+    if (isTokenEqual) {
+      new Exception(BAD_REQUEST, '', 'token is invalid or already expired');
+    }
+    const tokens = await this.getAccessAndJWTTokens({
+      id: user.id,
+      login: user.login,
+    });
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
 }
